@@ -206,33 +206,31 @@ class MinesweeperAI():
 
         new_sentence = Sentence(neighbours, count)
 
+        # Prune new sentence of safes and mines before adding it to knowledge base
         for safe in self.safes:
             new_sentence.mark_safe(safe)
 
-        # TODO the same for mines ^
+        for mine in self.mines:
+            new_sentence.mark_mine(mine)
 
         self.knowledge.append(new_sentence)
 
         # Want to keep checking sentences against the knowledge base until there are no changes
         # Loop twice for now
+        # (Could become any_new_safes_or_mines flag)
 
-        for i in range(2):
+        for loop in range(2):
+
+            # Check any sentences for known safes or mines
+            # (count == 0) or (len(cells) == count)
 
             for sentence in self.knowledge:
                 for mine in sentence.known_mines().copy():
                     self.mark_mine(mine)
 
-            # Propagate safes from new sentence and last move through knowledge base
             for sentence in self.knowledge:
                 for safe in sentence.known_safes().copy():
                     self.mark_safe(safe)
-
-            for sentence in self.knowledge:
-                print(sentence)
-            
-            print(f"known safes: {self.safes}")
-            print(f"known mines: {self.mines}")
-            print('----next iter----')
 
             # Check each sentence against knowledge base for subsets
             for i in range(len(self.knowledge)):
@@ -248,6 +246,15 @@ class MinesweeperAI():
                         new_count = sentence.count - test_sentence.count
                         self.knowledge.remove(sentence)
                         self.knowledge.append(Sentence(new_cells, new_count))
+            
+            for sentence in self.knowledge:
+                print(sentence)
+            
+            print(f"known safes: {self.safes}")
+            print(f"known mines: {self.mines}")
+            print(f"----iter {loop}----")
+
+        # TODO prune empty sentences somewhere
 
 
     def make_safe_move(self):
@@ -280,7 +287,6 @@ class MinesweeperAI():
         
         possible_moves = (entire_board - self.moves_made) - self.mines
         print(list(possible_moves))
-        print(random.sample(list(possible_moves), 1))
         if len(possible_moves) > 0:
             return random.sample(list(possible_moves), 1)[0]
         else:
