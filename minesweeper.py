@@ -195,7 +195,7 @@ class MinesweeperAI():
         self.safes.add(cell)
 
         neighbours = set()
-        for i in range(cell[0]-1, cell[0+2]):
+        for i in range(cell[0]-1, cell[0]+2):
             for j in range(cell[1]-1, cell[1]+2):
 
                 if (i, j) == cell:
@@ -204,25 +204,30 @@ class MinesweeperAI():
                 if 0 <= i < self.height and 0 <= j < self.width:
                     neighbours.add(cell)
 
-        self.knowledge.add(new Sentence(neighbours, count))
+        self.knowledge.append(Sentence(neighbours, count))
 
         for sentence in self.knowledge:
-            for mine in sentence.known_mines():
+            for mine in sentence.known_mines().copy():
                 self.mark_mine(mine)
 
         for sentence in self.knowledge:
-            for safe in sentence.known_safes():
+            for safe in sentence.known_safes().copy():
                 self.mark_safe(safe)
 
-        remaining = self.knowledge.copy()
-        while len(remaining) > 0:
-            test_sentence = remaining.pop()
+        # Check each sentence against knowledge base for subsets
+        for i in range(len(self.knowledge)):
+            test_sentence = self.knowledge[i]
 
-            for sentence in self.knowledge:
-                if test_sentence.cells.issubset(sentence.cells):
+            for index, sentence in enumerate(self.knowledge):
+                
+                # if the sentence is the test_sentence, do nothing
+                if i == index:
+                    continue
+                elif test_sentence.cells < sentence.cells:
                     new_cells = sentence.cells - test_sentence.cells
                     new_count = sentence.count - test_sentence.count
-                    self.knowledge.add(new Sentence(new_cells, new_count))
+                    self.knowledge.remove(sentence)
+                    self.knowledge.append(Sentence(new_cells, new_count))
 
 
     def make_safe_move(self):
@@ -234,7 +239,7 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        return (self.safes - self.moves_made)[0]
+        return list((self.safes - self.moves_made))[0]
 
     def make_random_move(self):
         """
