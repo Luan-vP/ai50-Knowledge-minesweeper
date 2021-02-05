@@ -215,31 +215,35 @@ class MinesweeperAI():
 
         self.knowledge.append(new_sentence)
 
-        # Check any sentences for known safes or mines
-        # (count == 0) or (len(cells) == count)
+        # Loop twice to make sure all changes are propagated
+        for loop in range(1):
 
-        for sentence in self.knowledge:
-            for mine in sentence.known_mines().copy():
-                self.mark_mine(mine)
+            # Check any sentences for known safes or mines
+            # (count == 0) or (len(cells) == count)
 
-        for sentence in self.knowledge:
-            for safe in sentence.known_safes().copy():
-                self.mark_safe(safe)
+            for sentence in self.knowledge:
+                for mine in sentence.known_mines().copy():
+                    self.mark_mine(mine)
 
-        # Check each sentence against knowledge base for subsets
-        for i in range(len(self.knowledge)):
-            test_sentence = self.knowledge[i]
+            for sentence in self.knowledge:
+                for safe in sentence.known_safes().copy():
+                    self.mark_safe(safe)
 
-            for index, sentence in enumerate(self.knowledge):
-                
-                # if the sentence is the test_sentence, do nothing
-                if i == index:
-                    continue
-                elif test_sentence.cells < sentence.cells:
-                    new_cells = sentence.cells - test_sentence.cells
-                    new_count = sentence.count - test_sentence.count
-                    self.knowledge.remove(sentence)
-                    self.knowledge.append(Sentence(new_cells, new_count))
+            # Check each sentence against knowledge base for subsets
+            for i in range(len(self.knowledge)):
+                test_sentence = self.knowledge[i]
+
+                for index, sentence in enumerate(self.knowledge):
+                    
+                    # if the sentence is the test_sentence, do nothing
+                    if i == index:
+                        continue
+                    elif test_sentence.cells < sentence.cells:
+                        new_cells = sentence.cells - test_sentence.cells
+                        new_count = sentence.count - test_sentence.count
+                        self.knowledge.remove(sentence)
+                        self.knowledge.append(Sentence(new_cells, new_count))
+
 
     def make_safe_move(self):
         """
