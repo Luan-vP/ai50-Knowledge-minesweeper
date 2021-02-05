@@ -192,7 +192,7 @@ class MinesweeperAI():
                if they can be inferred from existing knowledge
         """
         self.moves_made.add(cell)
-        self.safes.add(cell)
+        self.mark_safe(cell)
 
         neighbours = set()
         for i in range(cell[0]-1, cell[0]+2):
@@ -204,18 +204,26 @@ class MinesweeperAI():
                 if 0 <= i < self.height and 0 <= j < self.width:
                     neighbours.add((i,j))
 
-        self.knowledge.append(Sentence(neighbours, count))
+        new_sentence = Sentence(neighbours, count)
+
+        for safes in self.safes:
+            new_sentence.mark_safe(safe)
+
+        self.knowledge.append(new_sentence)
 
         for sentence in self.knowledge:
             for mine in sentence.known_mines().copy():
                 self.mark_mine(mine)
 
+        # Propagate safes from new sentence and last move through knowledge base
         for sentence in self.knowledge:
             for safe in sentence.known_safes().copy():
                 self.mark_safe(safe)
 
         for sentence in self.knowledge:
             print(sentence)
+        
+        print(f"known safes: {self.safes}")
         print('----next iter----')
 
         # Check each sentence against knowledge base for subsets
@@ -243,8 +251,11 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        print(next(iter(self.safes - self.moves_made)))
-        return next(iter(self.safes - self.moves_made))
+        print(f"{len(self.safes - self.moves_made)} safe moves available")
+        if len(self.safes - self.moves_made) > 0:
+            return next(iter(self.safes - self.moves_made))
+        else:
+            return None
 
     def make_random_move(self):
         """
@@ -253,10 +264,16 @@ class MinesweeperAI():
             1) have not already been chosen, and
             2) are not known to be mines
         """
-        all_possible = set()
+        entire_board = set()
 
         for i in range(self.height):
             for j in range(self.width):
-                all_possible.add((i,j))
+                entire_board.add((i,j))
         
-        return random.sample(list(((all_possible - self.moves_made) - self.mines)))
+        possible_moves = (entire_board - self.moves_made) - self.mines
+        print(list(possible_moves))
+        print(random.sample(list(possible_moves), 1))
+        if len(possible_moves) > 0:
+            return random.sample(list(possible_moves), 1)[0]
+        else:
+            return None
