@@ -206,40 +206,48 @@ class MinesweeperAI():
 
         new_sentence = Sentence(neighbours, count)
 
-        for safes in self.safes:
+        for safe in self.safes:
             new_sentence.mark_safe(safe)
+
+        # TODO the same for mines ^
 
         self.knowledge.append(new_sentence)
 
-        for sentence in self.knowledge:
-            for mine in sentence.known_mines().copy():
-                self.mark_mine(mine)
+        # Want to keep checking sentences against the knowledge base until there are no changes
+        # Loop twice for now
 
-        # Propagate safes from new sentence and last move through knowledge base
-        for sentence in self.knowledge:
-            for safe in sentence.known_safes().copy():
-                self.mark_safe(safe)
+        for i in range(2):
 
-        for sentence in self.knowledge:
-            print(sentence)
-        
-        print(f"known safes: {self.safes}")
-        print('----next iter----')
+            for sentence in self.knowledge:
+                for mine in sentence.known_mines().copy():
+                    self.mark_mine(mine)
 
-        # Check each sentence against knowledge base for subsets
-        for i in range(len(self.knowledge)):
-            test_sentence = self.knowledge[i]
+            # Propagate safes from new sentence and last move through knowledge base
+            for sentence in self.knowledge:
+                for safe in sentence.known_safes().copy():
+                    self.mark_safe(safe)
 
-            for index, sentence in enumerate(self.knowledge):
-                
-                # if the sentence is the test_sentence, do nothing
-                if i == index:
-                    continue
-                elif test_sentence.cells < sentence.cells:
-                    new_cells = sentence.cells - test_sentence.cells
-                    new_count = sentence.count - test_sentence.count
-                    self.knowledge.remove(sentence)
-                    self.knowledge.append(Sentence(new_cells, new_count))
+            for sentence in self.knowledge:
+                print(sentence)
+            
+            print(f"known safes: {self.safes}")
+            print(f"known mines: {self.mines}")
+            print('----next iter----')
+
+            # Check each sentence against knowledge base for subsets
+            for i in range(len(self.knowledge)):
+                test_sentence = self.knowledge[i]
+
+                for index, sentence in enumerate(self.knowledge):
+                    
+                    # if the sentence is the test_sentence, do nothing
+                    if i == index:
+                        continue
+                    elif test_sentence.cells < sentence.cells:
+                        new_cells = sentence.cells - test_sentence.cells
+                        new_count = sentence.count - test_sentence.count
+                        self.knowledge.remove(sentence)
+                        self.knowledge.append(Sentence(new_cells, new_count))
 
 
     def make_safe_move(self):
