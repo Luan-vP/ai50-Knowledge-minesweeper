@@ -202,7 +202,7 @@ class MinesweeperAI():
                     continue 
 
                 if 0 <= i < self.height and 0 <= j < self.width:
-                    neighbours.add(cell)
+                    neighbours.add((i,j))
 
         self.knowledge.append(Sentence(neighbours, count))
 
@@ -213,6 +213,10 @@ class MinesweeperAI():
         for sentence in self.knowledge:
             for safe in sentence.known_safes().copy():
                 self.mark_safe(safe)
+
+        for sentence in self.knowledge:
+            print(sentence)
+        print('----next iter----')
 
         # Check each sentence against knowledge base for subsets
         for i in range(len(self.knowledge)):
@@ -239,7 +243,8 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        return list((self.safes - self.moves_made))[0]
+        print(next(iter(self.safes - self.moves_made)))
+        return next(iter(self.safes - self.moves_made))
 
     def make_random_move(self):
         """
